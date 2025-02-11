@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steganography App</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="modal" id="ethicsModal">
+        <div class="modal-content">
+            <h2>Ethical Use Agreement</h2>
+            <p>Do you agree to use this tool within ethical boundaries and ask for anyone's permission before using it?</p>
+            <button id="agreeButton">I Agree</button>
+            <button id="disagreeButton">I Don't Agree</button>
+            <p class="alertText"><i>* By clicking "I agree", you are legally required to commit to this agreement</i></p>
+        </div>
+    </div>
+    <div class="container" id="mainContent">
+        <header>
+            <h1>Steganography App</h1>
+        </header>
+        <main>
+            <div id="messageArea" class="message-area"></div>
+            <section class="encode-section">
+                <h2>Encode Message</h2>
+                <label class="custom-file-upload">
+                    <input type="file" id="encodeImage" accept="image/*" onchange="displayFileName('encodeImage', 'encodeFileName')">
+                    Choose File
+                </label>
+                <span id="encodeFileName"></span>
+                <textarea id="message" placeholder="Enter your message"></textarea>
+                <button onclick="encodeMessage()">Encode</button>
+                <p id="encodeError" class="error-message"></p>
+            </section>
+            <section class="decode-section">
+                <h2>Decode Message</h2>
+                <label class="custom-file-upload">
+                    <input type="file" id="decodeImage" accept="image/*" onchange="displayFileName('decodeImage', 'decodeFileName')">
+                    Choose File
+                </label>
+                <span id="decodeFileName"></span>
+                <button onclick="decodeMessage()">Decode</button>
+                <p id="decodeError" class="error-message"></p>
+                <div id="decodedMessage" class="decoded-message" data-placeholder="Decoded message will appear here..."></div>
+            </section>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
