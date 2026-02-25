@@ -14,8 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     disagreeButton.addEventListener('click', function () {
-        alert('Access denied without ethical agreement.');
-        window.location.reload();
+        displayMessage('Access denied without ethical agreement.', 'error');
     });
 });
 
@@ -62,10 +61,9 @@ function displayFileName(inputId, displayId) {
 async function encodeMessage() {
     const imageInput = document.getElementById('encodeImage');
     const password = document.getElementById('encodePassword').value;
-    const errorEl = document.getElementById('encodeError');
 
     if (!imageInput.files[0]) {
-        errorEl.textContent = 'Select a cover image first.';
+        displayMessage('Select a cover image first.', 'error');
         return;
     }
 
@@ -75,14 +73,14 @@ async function encodeMessage() {
     if (currentPayloadType === 'text') {
         const text = document.getElementById('message').value;
         if (!text) {
-            errorEl.textContent = 'Enter a message to hide.';
+            displayMessage('Enter a message to hide.', 'error');
             return;
         }
         payloadData = new TextEncoder().encode(text);
     } else {
         const fileInput = document.getElementById('secretFile');
         if (!fileInput.files[0]) {
-            errorEl.textContent = 'Select a secret file to hide.';
+            displayMessage('Select a secret file to hide.', 'error');
             return;
         }
         fileName = fileInput.files[0].name;
@@ -128,7 +126,7 @@ async function encodeMessage() {
             const data = imageData.data;
 
             if (fullPayload.length * 8 > (data.length / 4) * 3) {
-                errorEl.textContent = 'Image too small for this payload.';
+                displayMessage('Image too small for this payload.', 'error');
                 return;
             }
 
@@ -160,12 +158,11 @@ async function encodeMessage() {
 async function decodeMessage() {
     const imageInput = document.getElementById('decodeImage');
     const password = document.getElementById('decodePassword').value;
-    const errorEl = document.getElementById('decodeError');
     const outputEl = document.getElementById('decodedMessage');
     const downloadArea = document.getElementById('fileDownloadArea');
 
     if (!imageInput.files[0]) {
-        errorEl.textContent = 'Select a steganographic image.';
+        displayMessage('Select a steganographic image.', 'error');
         return;
     }
 
@@ -200,9 +197,10 @@ async function decodeMessage() {
             }
 
             // Read Logic
-            const magic = new TextDecoder().decode(getBytes(0, 4));
+            const decodedMagic = getBytes(0, 4);
+            const magic = new TextDecoder().decode(decodedMagic);
             if (magic !== 'STEG') {
-                errorEl.textContent = 'No valid SteganoPro payload found.';
+                displayMessage('No valid SteganoPro payload found.', 'error');
                 return;
             }
 
@@ -217,7 +215,7 @@ async function decodeMessage() {
 
             if (isEncrypted) {
                 if (!password) {
-                    errorEl.textContent = 'Password required for this payload.';
+                    displayMessage('Password required for this payload.', 'error');
                     return;
                 }
                 try {
@@ -229,7 +227,7 @@ async function decodeMessage() {
                     const typedArray = new Uint8Array(decryptedHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
                     payload = typedArray;
                 } catch (err) {
-                    errorEl.textContent = 'Invalid password or corrupted data.';
+                    displayMessage('Invalid password or corrupted data.', 'error');
                     return;
                 }
             }
