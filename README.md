@@ -1,7 +1,5 @@
 # SteganoPro | Advanced Steganography App
 
-![SteganoPro Banner](https://via.placeholder.com/800x200?text=SteganoPro+Advanced+Embedding)
-
 ## Description
 SteganoPro is a high-performance, browser-based steganography tool that allows you to hide not just text, but **any file type (including .bat, .exe, .zip)** inside common image formats. It features enterprise-grade **AES-256 encryption** and a sleek, modern glassmorphic interface.
 
