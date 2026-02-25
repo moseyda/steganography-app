@@ -1,49 +1,38 @@
-# Steganography App
+# SteganoPro | Advanced Steganography App
 
-![Steganography App]
+![SteganoPro Banner](https://via.placeholder.com/800x200?text=SteganoPro+Advanced+Embedding)
 
 ## Description
-The Steganography App allows users to encode hidden messages into images and later decode them. This ensures secure communication through image-based steganography.
+SteganoPro is a high-performance, browser-based steganography tool that allows you to hide not just text, but **any file type (including .bat, .exe, .zip)** inside common image formats. It features enterprise-grade **AES-256 encryption** and a sleek, modern glassmorphic interface.
 
-## Features
-- Encode secret messages into images.
-- Decode hidden messages from images.
-- Ethical use agreement before usage.
-- User-friendly UI with real-time feedback.
-
-## Installation
-To run this project locally, follow these steps:
-
-```sh
-# Clone the repository
-git clone https://github.com/moseyda/steganography-app.git
-
-# Navigate to the project directory
-cd steganography-app
-```
+## Premium Features
+- **File Embedding**: Hide any binary file within an image.
+- **AES-256 Encryption**: Secure your payloads with industrial-strength passwords.
+- **Metadata Header System**: Automatically stores file names and types for easy extraction.
+- **Enhanced Capacity**: Optimized storage using R, G, and B color channels.
+- **Premium UI**: Modern dark theme with glassmorphism and Outfit typography.
+- **Privacy First**: Everything runs locally in your browser; no data ever leaves your machine.
 
 ## Usage
-1. Open `index.html` in a web browser.
-2. Agree to the ethical use agreement.
-3. Use the "Encode" section to hide messages within an image.
-4. Use the "Decode" section to retrieve hidden messages from an image.
+1. Open `index.html` in a modern browser.
+2. **Encode**: 
+   - Select a cover image.
+   - Choose "File" mode.
+   - Upload your secret file (e.g., `payload.bat`).
+   - (Optional) Enter an encryption password.
+   - Click "Generate Stegano-Image".
+3. **Decode**:
+   - Upload the steganographic image.
+   - Enter the password if encryption was used.
+   - Click "Extract Payload" to download your file.
 
-## File Structure
-- `index.html` - Main structure of the application.
-- `styles.css` - Styles and UI design.
-- `script.js` - Core functionality including encoding and decoding logic.
-
-## Contributing
-Contributions are welcome! Follow these steps:
-
-1. Fork the repository
-2. Create a new branch (`git checkout -b feature-branch`)
-3. Make your changes and commit (`git commit -m 'Add new feature'`)
-4. Push to the branch (`git push origin feature-branch`)
-5. Open a pull request
+## Technical Details
+- **Architecture**: Vanilla JS, HTML5 Canvas API, CSS3 Glassmorphism.
+- **Encryption**: CryptoJS (AES-256).
+- **Format**: Custom binary header (`STEG` v1) followed by metadata and payload.
 
 ## Legal Usage
-This project is a demonstration/tutorial only and any non-ethical usage of this tool is not the responsibility of moseyda under any circumstances.
+This project is for educational and privacy-oriented purposes. The author is not responsible for any misuse of this tool.
 
 ## Contact
-For any inquiries, contact [Mo](janngl0s1@gmail.com)
+Maintainer: [Mo](mailto:moseyda.developer@gmail.com)

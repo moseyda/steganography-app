@@ -1,52 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Steganography App</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
+    <title>SteganoPro | Advanced Steganography</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
+
 <body>
     <div class="modal" id="ethicsModal">
         <div class="modal-content">
+            <div class="modal-icon">⚖️</div>
             <h2>Ethical Use Agreement</h2>
-            <p>Do you agree to use this tool within ethical boundaries and ask for anyone's permission before using it?</p>
-            <button id="agreeButton">I Agree</button>
-            <button id="disagreeButton">I Don't Agree</button>
-            <p class="alertText"><i>* By clicking "I agree", you are legally required to commit to this agreement</i></p>
+            <p>This tool is designed for privacy and research. By proceeding, you agree to use it responsibly and
+                respect legal boundaries.</p>
+            <div class="modal-buttons">
+                <button id="agreeButton" class="btn-primary">I Agree</button>
+                <button id="disagreeButton" class="btn-secondary">Decline</button>
+            </div>
+            <p class="alertText"><i>* Usage is subject to ethical standards.</i></p>
         </div>
     </div>
+
     <div class="container" id="mainContent">
         <header>
-            <h1>Steganography App</h1>
+            <h1>Stegano<span>Pro</span></h1>
+            <p class="subtitle">Secure, Invisible Data Embedding</p>
         </header>
+
         <main>
             <div id="messageArea" class="message-area"></div>
-            <section class="encode-section">
-                <h2>Encode Message</h2>
-                <label class="custom-file-upload">
-                    <input type="file" id="encodeImage" accept="image/*" onchange="displayFileName('encodeImage', 'encodeFileName')">
-                    Choose File
-                </label>
-                <span id="encodeFileName"></span>
-                <textarea id="message" placeholder="Enter your message"></textarea>
-                <button onclick="encodeMessage()">Encode</button>
+
+            <section class="card encode-section">
+                <div class="section-header">
+                    <div class="icon">🔒</div>
+                    <h2>Encode Payload</h2>
+                </div>
+
+                <div class="input-group">
+                    <label>Cover Image</label>
+                    <label class="custom-file-upload">
+                        <input type="file" id="encodeImage" accept="image/*"
+                            onchange="displayFileName('encodeImage', 'encodeFileName')">
+                        <span>Select Image</span>
+                    </label>
+                    <span id="encodeFileName" class="file-name"></span>
+                </div>
+
+                <div class="input-group">
+                    <label>Payload Type</label>
+                    <div class="toggle-group">
+                        <button id="typeText" class="toggle-btn active" onclick="setPayloadType('text')">Text</button>
+                        <button id="typeFile" class="toggle-btn" onclick="setPayloadType('file')">File</button>
+                    </div>
+                </div>
+
+                <div id="textPayloadArea" class="input-group">
+                    <label>Secret Message</label>
+                    <textarea id="message" placeholder="Type your secret message here..."></textarea>
+                </div>
+
+                <div id="filePayloadArea" class="input-group" style="display: none;">
+                    <label>Secret File</label>
+                    <label class="custom-file-upload payload-upload">
+                        <input type="file" id="secretFile" onchange="displayFileName('secretFile', 'secretFileName')">
+                        <span>Select Secret File</span>
+                    </label>
+                    <span id="secretFileName" class="file-name"></span>
+                </div>
+
+                <div class="input-group">
+                    <label>Encryption Password (Optional)</label>
+                    <input type="password" id="encodePassword" placeholder="Keep it secret, keep it safe...">
+                </div>
+
+                <button class="btn-action" onclick="encodeMessage()">Generate Stegano-Image</button>
                 <p id="encodeError" class="error-message"></p>
             </section>
-            <section class="decode-section">
-                <h2>Decode Message</h2>
-                <label class="custom-file-upload">
-                    <input type="file" id="decodeImage" accept="image/*" onchange="displayFileName('decodeImage', 'decodeFileName')">
-                    Choose File
-                </label>
-                <span id="decodeFileName"></span>
-                <button onclick="decodeMessage()">Decode</button>
+
+            <section class="card decode-section">
+                <div class="section-header">
+                    <div class="icon">🔓</div>
+                    <h2>Decode Payload</h2>
+                </div>
+
+                <div class="input-group">
+                    <label>Stegano-Image</label>
+                    <label class="custom-file-upload">
+                        <input type="file" id="decodeImage" accept="image/*"
+                            onchange="displayFileName('decodeImage', 'decodeFileName')">
+                        <span>Select Image</span>
+                    </label>
+                    <span id="decodeFileName" class="file-name"></span>
+                </div>
+
+                <div class="input-group">
+                    <label>Decryption Password</label>
+                    <input type="password" id="decodePassword" placeholder="Enter password if encrypted">
+                </div>
+
+                <button class="btn-action" onclick="decodeMessage()">Extract Payload</button>
                 <p id="decodeError" class="error-message"></p>
-                <div id="decodedMessage" class="decoded-message" data-placeholder="Decoded message will appear here..."></div>
+                <div id="decodedMessage" class="decoded-message" data-placeholder="Decoded output will appear here...">
+                </div>
+                <div id="fileDownloadArea" style="display: none; margin-top: 15px;">
+                    <a id="downloadPayloadLink" class="btn-download">Download Extracted File</a>
+                </div>
             </section>
         </main>
     </div>
     <script src="script.js"></script>
 </body>
+
 </html>
