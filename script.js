@@ -89,7 +89,8 @@ async function encodeMessage() {
 
     // Encryption
     if (password) {
-        const encrypted = CryptoJS.AES.encrypt(CryptoJS.lib.Uint8Array.create(payloadData), password).toString();
+        const wordWrap = CryptoJS.lib.WordArray.create(payloadData);
+        const encrypted = CryptoJS.AES.encrypt(wordWrap, password).toString();
         payloadData = new TextEncoder().encode(encrypted);
     }
 
@@ -114,45 +115,56 @@ async function encodeMessage() {
 
     // Image Processing
     const reader = new FileReader();
-    reader.onload = function (e) {
-        const img = new Image();
-        img.onload = function () {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imageData.data;
+    reader.onload = async function (e) {
+        // Use createImageBitmap to avoid color space conversion and premultiplication
+        const blob = new Blob([e.target.result]);
+        const imgBitmap = await createImageBitmap(blob, {
+            colorSpaceConversion: 'none',
+            premultiplyAlpha: 'none'
+        });
 
-            if (fullPayload.length * 8 > (data.length / 4) * 3) {
-                displayMessage('Image too small for this payload.', 'error');
-                return;
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d', { colorSpace: 'srgb', willReadFrequently: true });
+        canvas.width = imgBitmap.width;
+        canvas.height = imgBitmap.height;
+
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(imgBitmap, 0, 0);
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+
+        // Force Alpha to 255 for all pixels to prevent premultiplication corruption
+        for (let i = 3; i < data.length; i += 4) {
+            data[i] = 255;
+        }
+
+        if (fullPayload.length * 8 > (data.length / 4) * 3) {
+            displayMessage('Image too small for this payload.', 'error');
+            return;
+        }
+
+        let bitIndex = 0;
+        const bits = [];
+        fullPayload.forEach(byte => {
+            for (let i = 7; i >= 0; i--) {
+                bits.push((byte >> i) & 1);
             }
+        });
 
-            let bitIndex = 0;
-            const bits = [];
-            fullPayload.forEach(byte => {
-                for (let i = 7; i >= 0; i--) {
-                    bits.push((byte >> i) & 1);
-                }
-            });
+        for (let i = 0; i < data.length && bitIndex < bits.length; i++) {
+            if (i % 4 === 3) continue; // Skip alpha
+            data[i] = (data[i] & 254) | bits[bitIndex++];
+        }
 
-            for (let i = 0; i < data.length && bitIndex < bits.length; i++) {
-                if (i % 4 === 3) continue; // Skip alpha
-                data[i] = (data[i] & 254) | bits[bitIndex++];
-            }
-
-            ctx.putImageData(imageData, 0, 0);
-            const link = document.createElement('a');
-            link.download = 'stego_premium_output.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-            displayMessage('Premium Encoding Complete!', 'success');
-        };
-        img.src = e.target.result;
+        ctx.putImageData(imageData, 0, 0);
+        const link = document.createElement('a');
+        link.download = 'stego_premium_output.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        displayMessage('Premium Encoding Complete!', 'success');
     };
-    reader.readAsDataURL(imageInput.files[0]);
+    reader.readAsArrayBuffer(imageInput.files[0]);
 }
 
 async function decodeMessage() {
@@ -167,86 +179,99 @@ async function decodeMessage() {
     }
 
     const reader = new FileReader();
-    reader.onload = function (e) {
-        const img = new Image();
-        img.onload = function () {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imageData.data;
+    reader.onload = async function (e) {
+        const blob = new Blob([e.target.result]);
+        const imgBitmap = await createImageBitmap(blob, {
+            colorSpaceConversion: 'none',
+            premultiplyAlpha: 'none'
+        });
 
-            const bits = [];
-            for (let i = 0; i < data.length; i++) {
-                if (i % 4 === 3) continue;
-                bits.push(data[i] & 1);
-            }
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d', { colorSpace: 'srgb', willReadFrequently: true });
+        canvas.width = imgBitmap.width;
+        canvas.height = imgBitmap.height;
 
-            function getBytes(startBit, count) {
-                const arr = new Uint8Array(count);
-                for (let i = 0; i < count; i++) {
-                    let byte = 0;
-                    for (let j = 0; j < 8; j++) {
-                        byte = (byte << 1) | bits[startBit + (i * 8) + j];
-                    }
-                    arr[i] = byte;
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(imgBitmap, 0, 0);
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+
+        // Force Alpha to 255 for parity
+        for (let i = 3; i < data.length; i += 4) {
+            data[i] = 255;
+        }
+
+        const bits = [];
+        // Only collect as many bits as needed or a reasonable max to improve performance
+        for (let i = 0; i < data.length; i++) {
+            if (i % 4 === 3) continue;
+            bits.push(data[i] & 1);
+        }
+
+        function getBytes(startBit, count) {
+            const arr = new Uint8Array(count);
+            for (let i = 0; i < count; i++) {
+                let byte = 0;
+                for (let j = 0; j < 8; j++) {
+                    const idx = startBit + (i * 8) + j;
+                    if (idx >= bits.length) return arr;
+                    byte = (byte << 1) | bits[idx];
                 }
-                return arr;
+                arr[i] = byte;
             }
+            return arr;
+        }
 
-            // Read Logic
-            const decodedMagic = getBytes(0, 4);
-            const magic = new TextDecoder().decode(decodedMagic);
-            if (magic !== 'STEG') {
-                displayMessage('No valid SteganoPro payload found.', 'error');
+        // Read Logic
+        const decodedMagic = getBytes(0, 4);
+        const magic = new TextDecoder().decode(decodedMagic);
+        if (magic !== 'STEG') {
+            displayMessage('No valid SteganoPro payload found.', 'error');
+            return;
+        }
+
+        const isEncrypted = bits[5 * 8 + 7] === 1;
+        const isFile = bits[6 * 8 + 7] === 1;
+        const nameLen = getBytes(7 * 8, 1)[0];
+        const name = new TextDecoder().decode(getBytes(8 * 8, nameLen));
+        const sizeBytes = getBytes((8 + nameLen) * 8, 4);
+        const size = new DataView(sizeBytes.buffer).getUint32(0);
+
+        let payload = getBytes((12 + nameLen) * 8, size);
+
+        if (isEncrypted) {
+            if (!password) {
+                displayMessage('Password required for this payload.', 'error');
                 return;
             }
+            try {
+                const encryptedStr = new TextDecoder().decode(payload);
+                const decrypted = CryptoJS.AES.decrypt(encryptedStr, password);
+                const decryptedHex = decrypted.toString(CryptoJS.enc.Hex);
+                if (!decryptedHex) throw new Error();
 
-            const isEncrypted = bits[5 * 8 + 7] === 1;
-            const isFile = bits[6 * 8 + 7] === 1;
-            const nameLen = getBytes(7 * 8, 1)[0];
-            const name = new TextDecoder().decode(getBytes(8 * 8, nameLen));
-            const sizeBytes = getBytes((8 + nameLen) * 8, 4);
-            const size = new DataView(sizeBytes.buffer).getUint32(0);
-
-            let payload = getBytes((12 + nameLen) * 8, size);
-
-            if (isEncrypted) {
-                if (!password) {
-                    displayMessage('Password required for this payload.', 'error');
-                    return;
-                }
-                try {
-                    const encryptedStr = new TextDecoder().decode(payload);
-                    const decrypted = CryptoJS.AES.decrypt(encryptedStr, password);
-                    const decryptedHex = decrypted.toString(CryptoJS.enc.Hex);
-                    if (!decryptedHex) throw new Error();
-
-                    const typedArray = new Uint8Array(decryptedHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-                    payload = typedArray;
-                } catch (err) {
-                    displayMessage('Invalid password or corrupted data.', 'error');
-                    return;
-                }
+                const typedArray = new Uint8Array(decryptedHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+                payload = typedArray;
+            } catch (err) {
+                displayMessage('Invalid password or corrupted data.', 'error');
+                return;
             }
+        }
 
-            if (isFile) {
-                const blob = new Blob([payload], { type: 'application/octet-stream' });
-                const url = URL.createObjectURL(blob);
-                const link = document.getElementById('downloadPayloadLink');
-                link.href = url;
-                link.download = name || 'extracted_file';
-                outputEl.textContent = `File extracted: ${name}`;
-                downloadArea.style.display = 'block';
-            } else {
-                outputEl.textContent = new TextDecoder().decode(payload);
-                downloadArea.style.display = 'none';
-            }
-            displayMessage('Extraction successful!', 'success');
-        };
-        img.src = e.target.result;
+        if (isFile) {
+            const blob = new Blob([payload], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const link = document.getElementById('downloadPayloadLink');
+            link.href = url;
+            link.download = name || 'extracted_file';
+            outputEl.textContent = `File extracted: ${name}`;
+            downloadArea.style.display = 'block';
+        } else {
+            outputEl.textContent = new TextDecoder().decode(payload);
+            downloadArea.style.display = 'none';
+        }
+        displayMessage('Extraction successful!', 'success');
     };
-    reader.readAsDataURL(imageInput.files[0]);
+    reader.readAsArrayBuffer(imageInput.files[0]);
 }
