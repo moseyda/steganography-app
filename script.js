@@ -49,12 +49,27 @@ function displayMessage(message, type) {
     }, 4000);
 }
 
-function displayFileName(inputId, displayId) {
+function displayFileName(inputId, displayId, removeBtnId) {
     const input = document.getElementById(inputId);
     const display = document.getElementById(displayId);
+    const removeBtn = document.getElementById(removeBtnId);
+    const container = display.parentElement;
+
     if (input.files && input.files[0]) {
         display.textContent = input.files[0].name;
+        if (container) container.style.display = 'inline-flex';
+        if (removeBtn) removeBtn.style.display = 'flex';
+    } else {
+        display.textContent = '';
+        if (container) container.style.display = 'none';
+        if (removeBtn) removeBtn.style.display = 'none';
     }
+}
+
+function clearFile(inputId, displayId, removeBtnId) {
+    const input = document.getElementById(inputId);
+    input.value = '';
+    displayFileName(inputId, displayId, removeBtnId);
 }
 
 // Binary Steganography Logic

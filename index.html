@@ -46,10 +46,15 @@
                     <label>Cover Image</label>
                     <label class="custom-file-upload">
                         <input type="file" id="encodeImage" accept="image/*"
-                            onchange="displayFileName('encodeImage', 'encodeFileName')">
+                            onchange="displayFileName('encodeImage', 'encodeFileName', 'removeEncodeImage')">
                         <span>Select Image</span>
                     </label>
-                    <span id="encodeFileName" class="file-name"></span>
+                    <div class="file-display">
+                        <span id="encodeFileName" class="file-name"></span>
+                        <button id="removeEncodeImage" class="btn-remove"
+                            onclick="clearFile('encodeImage', 'encodeFileName', 'removeEncodeImage')"
+                            style="display: none;">&times;</button>
+                    </div>
                 </div>
 
                 <div class="input-group">
@@ -68,10 +73,16 @@
                 <div id="filePayloadArea" class="input-group" style="display: none;">
                     <label>Secret File</label>
                     <label class="custom-file-upload payload-upload">
-                        <input type="file" id="secretFile" onchange="displayFileName('secretFile', 'secretFileName')">
+                        <input type="file" id="secretFile"
+                            onchange="displayFileName('secretFile', 'secretFileName', 'removeSecretFile')">
                         <span>Select Secret File</span>
                     </label>
-                    <span id="secretFileName" class="file-name"></span>
+                    <div class="file-display">
+                        <span id="secretFileName" class="file-name"></span>
+                        <button id="removeSecretFile" class="btn-remove"
+                            onclick="clearFile('secretFile', 'secretFileName', 'removeSecretFile')"
+                            style="display: none;">&times;</button>
+                    </div>
                 </div>
 
                 <div class="input-group">
@@ -92,10 +103,15 @@
                     <label>Stegano-Image</label>
                     <label class="custom-file-upload">
                         <input type="file" id="decodeImage" accept="image/*"
-                            onchange="displayFileName('decodeImage', 'decodeFileName')">
+                            onchange="displayFileName('decodeImage', 'decodeFileName', 'removeDecodeImage')">
                         <span>Select Image</span>
                     </label>
-                    <span id="decodeFileName" class="file-name"></span>
+                    <div class="file-display">
+                        <span id="decodeFileName" class="file-name"></span>
+                        <button id="removeDecodeImage" class="btn-remove"
+                            onclick="clearFile('decodeImage', 'decodeFileName', 'removeDecodeImage')"
+                            style="display: none;">&times;</button>
+                    </div>
                 </div>
 
                 <div class="input-group">
